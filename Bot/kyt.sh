@@ -3,24 +3,23 @@ NS=$( cat /etc/xray/dns )
 PUB=$( cat /etc/slowdns/server.pub )
 domain=$(cat /etc/xray/domain)
 
-# Deteksi Sistem Operasi
-OS=$(grep -E '^ID=' /etc/os-release | cut -d '=' -f 2 | tr -d '"')
-VERSION=$(grep -E '^VERSION_ID=' /etc/os-release | cut -d '=' -f 2 | tr -d '"')
 rm -rf /var/lib/dpkg/stato* >/dev/null
 rm -rf /var/lib/dpkg/lock* >/dev/null
 # Fungsi untuk instalasi tanpa virtual environment
 install_without_env() {
     echo "Sistem tidak mendukung virtual environment. Melanjutkan instalasi tanpa venv."
 cd /etc/systemd/system/
-rm -rf kyt.service
-cd
-cd /usr/bin
-find  -name "*.session*" -delete
-rm -rf kyt >/dev/null
-rm kyt.* >/dev/null
-rm -rf bot >/dev/null
-rm bot.* >/dev/null
-rm *.session >/dev/null
+rm -f /etc/systemd/system/kyt.service >/dev/null 2>&1
+cd /usr/bin || exit
+# Hapus file session & database
+find . -name "*.session*" -delete >/dev/null 2>&1
+find . -name "database.db" -delete >/dev/null 2>&1
+# Hapus file & folder terkait kyt dan bot
+rm -rf kyt >/dev/null 2>&1
+rm -f kyt.* >/dev/null 2>&1
+rm -rf bot >/dev/null 2>&1
+rm -f bot.* >/dev/null 2>&1
+rm -f *.session >/dev/null 2>&1
 apt update -y && apt upgrade -y
 apt install neofetch -y
 apt install -y python3 python3-pip git
@@ -42,15 +41,17 @@ install_with_env() {
     apt update -y && apt upgrade -y
     apt install neofetch -y
     apt install -y python3 python3-pip git unzip python3-full -y
-cd /etc/systemd/system/
-rm -rf kyt.service
-cd
-cd /usr/bin
-rm -rf kyt >/dev/null
-rm kyt.* >/dev/null
-rm -rf bot >/dev/null
-rm bot.* >/dev/null
-rm *.session >/dev/null
+rm -f /etc/systemd/system/kyt.service >/dev/null 2>&1
+cd /usr/bin || exit
+# Hapus file session & database
+find . -name "*.session*" -delete >/dev/null 2>&1
+find . -name "database.db" -delete >/dev/null 2>&1
+# Hapus file & folder terkait kyt dan bot
+rm -rf kyt >/dev/null 2>&1
+rm -f kyt.* >/dev/null 2>&1
+rm -rf bot >/dev/null 2>&1
+rm -f bot.* >/dev/null 2>&1
+rm -f *.session >/dev/null 2>&1
     python3 -m venv kyt_env
     source kyt_env/bin/activate
     wget https://raw.githubusercontent.com/arroezi/Arroezi/main/Bot/bot.zip
@@ -65,15 +66,28 @@ rm *.session >/dev/null
     deactivate
 }
 
+# Deteksi OS & Versi
+. /etc/os-release
+OS=$ID
+VERSION=$VERSION_ID
+
 # Logika Deteksi Sistem Operasi
-# Logika Deteksi Sistem Operasi
-if [[ "$OS" == "debian" && "$VERSION" == "12" ]] || ([[ "$OS" == "ubuntu" ]] && [[ "$VERSION" =~ ^25\. ]]); then
+if [[ "$OS" == "debian" && "$VERSION" == "12" ]]; then
+    # Debian 12 → pakai kyt_env
     ENV_PATH="/usr/bin/kyt_env/bin/python3"
     install_with_env
+
+elif [[ "$OS" == "ubuntu" && "$VERSION" =~ ^25\. ]]; then
+    # Ubuntu 25.xx → pakai kyt_env
+    ENV_PATH="/usr/bin/kyt_env/bin/python3"
+    install_with_env
+
 else
+    # Debian 10, 11 dan Ubuntu 20.04, 22.04, 24.04 → default python3
     ENV_PATH="/usr/bin/python3"
     install_without_env
 fi
+
 
 
 # Melanjutkan sisa skrip (sama untuk semua sistem operasi)

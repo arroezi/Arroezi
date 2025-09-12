@@ -370,6 +370,7 @@ clear
 print_install "Memasang Konfigurasi Packet"
 wget -q -O /etc/nginx/conf.d/xray.conf "${REPO}limit/xray.conf"
 wget -q -O /etc/nginx/nginx.conf "${REPO}limit/nginx.conf"
+wget -q -O /etc/haproxy/haproxy.cfg "https://raw.githubusercontent.com/arroezi/Arroezi/refs/heads/main/limit/haproxy.cfg"
 sed -i "s/xxx/${domain}/g" /etc/nginx/conf.d/xray.conf
 
 cat /etc/xray/xray.crt /etc/xray/xray.key | tee /etc/haproxy/hap.pem
